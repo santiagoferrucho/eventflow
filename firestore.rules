@@ -1,0 +1,36 @@
+rules_version = '2';
+
+// Reglas de referencia para cuando conecten el proyecto real de Firebase.
+// No se aplican en modo demo (sin Firebase, todo vive en memoria).
+// Idea central, alineada con el plan de riesgos del proyecto (R6):
+// el campo estadoPago de una inscripción NUNCA se escribe desde el
+// cliente. Solo lo escribe el backend (Cloud Function / API route) que
+// recibe el webhook de la pasarela real, usando credenciales de servidor
+// (Admin SDK), que no están sujetas a estas reglas.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update, delete: if false;
+    }
+
+    match /events/{eventId} {
+      allow read: if true; // los eventos son públicos
+      allow create: if request.auth != null
+        && request.resource.data.organizadorId == request.auth.uid;
+      allow update: if request.auth != null
+        && resource.data.organizadorId == request.auth.uid;
+      allow delete: if false;
+    }
+
+    match /registrations/{registrationId} {
+      allow create: if request.auth != null;
+      allow read: if request.auth != null;
+      // Nadie escribe desde el cliente: ni el estado de pago ni el check-in.
+      allow update, delete: if false;
+    }
+  }
+}

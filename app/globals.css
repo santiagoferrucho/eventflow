@@ -1,0 +1,85 @@
+@import "tailwindcss";
+
+:root {
+  /* Superficie: blanco puro arriba, gris-azulado muy sutil de fondo */
+  --background: #f6f7fb;
+  --surface: #ffffff;
+
+  /* Texto: casi negro con un dejo azul (más "tech" que negro puro) */
+  --ink: #0b1120;
+  --ink-soft: #5b6478;
+  --ink-faint: #94a0b8;
+
+  --line: #e6e9f2;
+  --line-strong: #d3d8e6;
+
+  /* Acento primario: violeta-índigo vibrante */
+  --brand: #6355ff;
+  --brand-dark: #4d3fe0;
+  --brand-soft: #eeecff;
+
+  /* Acento secundario: cian, para contraste/gradientes */
+  --accent: #17c3d6;
+  --accent-soft: #e3fbfd;
+
+  --success: #17a06b;
+  --success-soft: #e4f8ef;
+  --gold: #b8860b;
+  --gold-soft: #fbf1d9;
+  --danger: #e0304a;
+  --danger-soft: #fdeaed;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-faint: var(--ink-faint);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-brand: var(--brand);
+  --color-brand-dark: var(--brand-dark);
+  --color-brand-soft: var(--brand-soft);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --font-display: "Sora";
+  --font-body: "Inter";
+}
+
+body {
+  background: var(--background);
+  color: var(--ink);
+  font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+}
+
+h1, h2, h3, .font-display {
+  font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+}
+
+.text-gradient {
+  background: linear-gradient(100deg, var(--brand) 10%, var(--accent) 90%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.bg-grid {
+  background-image:
+    linear-gradient(to right, var(--line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--line) 1px, transparent 1px);
+  background-size: 40px 40px;
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, black 40%, transparent 100%);
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, black 40%, transparent 100%);
+}
+
+::selection {
+  background: var(--brand-soft);
+  color: var(--brand-dark);
+}
