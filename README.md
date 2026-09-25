@@ -8,9 +8,11 @@ administrador.
 ## Stack
 
 - Next.js (App Router) + TypeScript + Tailwind CSS.
-- Datos guardados en un archivo local (`.eventflow-data/mock-db.json`),
-  a través de una capa de repositorio (`lib/repo`) pensada para poder
-  reemplazarse por una base de datos real sin tocar ninguna pantalla.
+- Datos: por defecto se guardan en un archivo local
+  (`.eventflow-data/mock-db.json`) a través de una capa de repositorio
+  (`lib/repo`); en cuanto exista la variable de entorno `DATABASE_URL`,
+  la app pasa sola a usar Postgres (pensado para Neon, que es con lo que
+  Vercel integra de forma nativa) sin tocar ninguna pantalla.
 - Todas las escrituras/lecturas desde componentes de cliente pasan por
   Server Actions (`lib/actions.ts`), nunca por el repositorio directo.
 
@@ -34,29 +36,32 @@ Abre `http://localhost:3000`.
 Se guardan en `.eventflow-data/mock-db.json` dentro del proyecto
 (excluido de git). Bórralo para reiniciar a los datos de ejemplo.
 
-## Desplegar en Render
+## Base de datos real (Postgres / Neon)
 
-El repositorio ya incluye `render.yaml`, así que Render puede
-configurarse solo:
+1. Crea una cuenta en [neon.tech](https://neon.tech) (gratis, sin
+   tarjeta) y un proyecto nuevo.
+2. Copia el **connection string** que te da (empieza con
+   `postgresql://...`).
+3. En el **SQL Editor** de Neon, pega y corre el contenido completo del
+   archivo `schema.sql` de este repositorio — crea las tablas y precarga
+   el evento de ejemplo.
+4. Para probarlo en tu PC: crea un archivo `.env.local` con
+   ```
+   DATABASE_URL=postgresql://... (el connection string de Neon)
+   ```
+   y corre `npm run dev` de nuevo. La app detecta la variable y empieza
+   a usar Postgres en vez del archivo local.
 
-1. En [render.com](https://render.com), crea cuenta/inicia sesión y da
-   clic en **New → Blueprint**.
-2. Conecta tu cuenta de GitHub y elige el repositorio `eventflow`.
-   Render detecta `render.yaml` automáticamente y propone el servicio
-   web con el build/start command correctos.
-3. Confirma y espera el primer despliegue (unos minutos). Te da una URL
-   tipo `https://eventflow.onrender.com`.
-4. Cada `git push` a `main` vuelve a desplegar solo.
+## Desplegar en Vercel
 
-Si prefieres configurarlo a mano en vez de con el blueprint: **New → Web
-Service**, conecta el repo, y usa:
-- Build Command: `npm install && npm run build`
-- Start Command: `npm run start`
+1. En [vercel.com](https://vercel.com), inicia sesión con GitHub y da
+   clic en **Add New → Project**.
+2. Elige el repositorio `eventflow`. Vercel detecta que es Next.js y
+   configura el build automáticamente — no hay que tocar nada.
+3. Antes de darle "Deploy", agrega la variable de entorno
+   `DATABASE_URL` con el connection string de Neon (paso anterior).
+4. Deploy. Cada `git push` a `main` vuelve a desplegar solo.
 
-**Nota sobre los datos en producción:** el plan gratuito de Render no
-incluye disco persistente, así que `.eventflow-data/mock-db.json` se
-reinicia con cada redeploy (no en cada visita — el servicio se mantiene
-corriendo entre peticiones, a diferencia de un hosting serverless). Para
-datos que persistan de verdad entre despliegues, el siguiente paso es
-conectar una base de datos real (Render ofrece PostgreSQL gestionado)
-implementando una nueva versión de `EventRepository` en `lib/repo/`.
+Sin disco persistente, sin servicio que "duerma": las funciones de
+Vercel son efímeras por petición, pero como los datos viven en Postgres
+(no en un archivo local), eso deja de ser un problema.
