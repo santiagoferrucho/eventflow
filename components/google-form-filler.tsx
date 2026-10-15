@@ -1,6 +1,64 @@
 "use client";
 
+import { useState } from "react";
 import type { CustomField } from "@/lib/types";
+import { MAX_IMAGEN_BYTES, urlImagen } from "@/lib/imagenes";
+
+function CampoImagen({ requerido, valor, onChange }: { requerido: boolean; valor: string; onChange: (v: string) => void }) {
+  const [estado, setEstado] = useState<"idle" | "subiendo">("idle");
+  const [error, setError] = useState<string | null>(null);
+  const [nombre, setNombre] = useState<string>("");
+
+  async function subir(file: File | undefined) {
+    if (!file) return;
+    setError(null);
+    if (file.size > MAX_IMAGEN_BYTES) {
+      setError("La imagen pesa más de 3 MB.");
+      return;
+    }
+    setEstado("subiendo");
+    try {
+      const fd = new FormData();
+      fd.append("archivo", file);
+      const r = await fetch("/api/imagenes", { method: "POST", body: fd });
+      const d = (await r.json()) as { valor?: string; nombre?: string; error?: string };
+      if (!r.ok || !d.valor) {
+        setError(d.error ?? "No pudimos subir la imagen.");
+        onChange("");
+        return;
+      }
+      setNombre(d.nombre ?? file.name);
+      onChange(d.valor);
+    } catch {
+      setError("No pudimos subir la imagen. Revisa la conexión.");
+    } finally {
+      setEstado("idle");
+    }
+  }
+
+  const id = valor.startsWith("img:") ? valor.slice(4) : null;
+  return (
+    <div>
+      <input
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        required={requerido && !valor}
+        onChange={(e) => subir(e.target.files?.[0])}
+        className="w-full rounded-lg border border-dashed border-line-strong bg-background px-3.5 py-2.5 text-sm text-ink-soft file:mr-3 file:rounded-md file:border-0 file:bg-brand-soft file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-brand-dark"
+      />
+      {estado === "subiendo" && <p className="mt-1 text-xs text-ink-soft">Subiendo…</p>}
+      {id && estado === "idle" && (
+        <div className="mt-2 flex items-center gap-3">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={urlImagen(id)} alt="Imagen subida" className="h-16 w-16 rounded-lg border border-line object-cover" />
+          <span className="text-xs text-success">Subida: {nombre || "imagen"}</span>
+        </div>
+      )}
+      {error && <p className="mt-1 text-xs text-danger">{error}</p>}
+      <p className="mt-1 text-xs text-ink-faint">JPG, PNG o WebP, máximo 3 MB.</p>
+    </div>
+  );
+}
 
 export function GoogleFormFiller({
   campos,
@@ -62,13 +120,7 @@ export function GoogleFormFiller({
               )}
 
               {campo.tipo === "imagen" && (
-                <input
-                  type="file"
-                  accept="image/*"
-                  required={campo.requerido}
-                  onChange={(e) => onChange(campo.id, e.target.files?.[0]?.name ?? "")}
-                  className="w-full rounded-lg border border-dashed border-line-strong bg-background px-3.5 py-2.5 text-sm text-ink-soft file:mr-3 file:rounded-md file:border-0 file:bg-brand-soft file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-brand-dark"
-                />
+                <CampoImagen requerido={campo.requerido} valor={valor} onChange={(v) => onChange(campo.id, v)} />
               )}
 
               {campo.tipo === "opcion_multiple" && (
