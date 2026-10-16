@@ -1,23 +1,14 @@
-import Link from "next/link";
 import { repo } from "@/lib/repo";
-import { Badge, Card } from "@/components/ui";
+import { EventosExplorador } from "@/components/eventos-explorador";
+import { EventosCercanos } from "@/components/eventos-cercanos";
 
-function formatCOP(value: number) {
-  return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(
-    value
-  );
-}
-
-function formatFecha(iso: string) {
-  return new Date(iso + "T00:00:00").toLocaleDateString("es-CO", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-}
+// La lista de eventos sale de la base de datos y cambia todo el tiempo: la
+// página se genera en cada visita. Sin esto, Next.js la generaría una sola
+// vez al desplegar y los eventos nuevos no aparecerían.
+export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const events = await repo.listEvents();
+  const [events, populares] = await Promise.all([repo.listEvents(), repo.listPopularEvents(4)]);
 
   return (
     <div>
@@ -39,36 +30,9 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
-        <h2 className="mb-5 text-sm font-medium uppercase tracking-wide text-ink-soft">
-          Próximos eventos
-        </h2>
-        <div className="grid gap-4 sm:grid-cols-2">
-          {events.map((evento) => {
-            const cuposTotal = evento.categorias.reduce((sum, c) => sum + c.cuposDisponibles, 0);
-            const tarifaDesde = Math.min(...evento.categorias.map((c) => c.tarifa));
-            return (
-              <Link key={evento.id} href={`/eventos/${evento.id}`}>
-                <Card className="h-full transition-all hover:-translate-y-0.5 hover:shadow-[0_1px_2px_rgba(11,17,32,0.04),0_16px_36px_-14px_rgba(99,85,255,0.25)]">
-                  <div className="mb-2 flex items-start justify-between gap-2">
-                    <h3 className="font-display text-xl font-semibold text-ink">{evento.nombre}</h3>
-                    <Badge tone="gold">{evento.disciplina}</Badge>
-                  </div>
-                  <p className="text-sm text-ink-soft">{formatFecha(evento.fecha)} · {evento.lugar}</p>
-                  <p className="mt-3 text-sm text-ink-soft">{evento.descripcion}</p>
-                  <div className="mt-4 flex items-center justify-between border-t border-line pt-3 text-sm">
-                    <span className="text-ink-soft">{cuposTotal} cupos disponibles</span>
-                    <span className="font-display font-semibold text-brand-dark">Desde {formatCOP(tarifaDesde)}</span>
-                  </div>
-                </Card>
-              </Link>
-            );
-          })}
-          {events.length === 0 && (
-            <p className="text-ink-soft">Todavía no hay eventos publicados.</p>
-          )}
-        </div>
-      </section>
+      <EventosCercanos populares={populares} />
+
+      <EventosExplorador eventos={events} />
     </div>
   );
 }

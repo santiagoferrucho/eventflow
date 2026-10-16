@@ -28,14 +28,24 @@ export function NavBar() {
         </Link>
       )}
       {user.rol === "organizador" && (
-        <Link href="/organizador" className="text-ink-soft hover:text-ink" onClick={() => setMenuAbierto(false)}>
-          Mi panel
-        </Link>
+        <>
+          <Link href="/organizador" className="text-ink-soft hover:text-ink" onClick={() => setMenuAbierto(false)}>
+            Mi panel
+          </Link>
+          <Link href="/escaner" className="text-ink-soft hover:text-ink" onClick={() => setMenuAbierto(false)}>
+            Escáner
+          </Link>
+        </>
       )}
       {user.rol === "administrador" && (
-        <Link href="/admin" className="text-ink-soft hover:text-ink" onClick={() => setMenuAbierto(false)}>
-          Panel admin
-        </Link>
+        <>
+          <Link href="/admin" className="text-ink-soft hover:text-ink" onClick={() => setMenuAbierto(false)}>
+            Panel admin
+          </Link>
+          <Link href="/escaner" className="text-ink-soft hover:text-ink" onClick={() => setMenuAbierto(false)}>
+            Escáner
+          </Link>
+        </>
       )}
     </>
   );
@@ -50,7 +60,9 @@ export function NavBar() {
           {linksPorRol}
           {!loading && user && (
             <>
-              <span className="text-ink-soft">{user.nombre}</span>
+              <Link href="/perfil" className="font-medium text-ink hover:text-brand-dark">
+                {user.nombre}
+              </Link>
               <Button variant="ghost" onClick={() => logout()}>
                 Cerrar sesión
               </Button>
@@ -92,7 +104,9 @@ export function NavBar() {
           {linksPorRol}
           {!loading && user && (
             <>
-              <span className="px-1 py-1.5 text-ink-soft">{user.nombre}</span>
+              <Link href="/perfil" className="px-1 py-1.5 font-medium text-ink hover:text-brand-dark" onClick={() => setMenuAbierto(false)}>
+                Mi perfil ({user.nombre})
+              </Link>
               <Button
                 variant="ghost"
                 className="justify-start"
