@@ -1,6 +1,6 @@
 import type { BetterAuthOptions } from "better-auth";
 import { APIError, createAuthMiddleware } from "better-auth/api";
-import { admin } from "better-auth/plugins";
+import { admin, bearer } from "better-auth/plugins";
 import { createAccessControl } from "better-auth/plugins/access";
 import { adminAc, defaultStatements } from "better-auth/plugins/admin/access";
 import { getPool } from "@/lib/db";
@@ -69,5 +69,9 @@ export const authOptions = {
       defaultRole: "participante",
       adminRoles: ["administrador"],
     }),
+    // La app móvil no usa cookies: envía el token de sesión en el encabezado
+    // Authorization: Bearer <token>. Este plugin lo convierte en la misma
+    // sesión que usa la web, así que las mismas reglas de permisos aplican.
+    bearer(),
   ],
 } satisfies BetterAuthOptions;

@@ -15,7 +15,13 @@ function normalizarRol(rol: unknown): UserRole {
 // Es la única fuente de verdad sobre quién es la persona y qué rol tiene:
 // nada de lo que mande el navegador (ids, roles) se usa para decidir permisos.
 export async function getSessionUser(): Promise<AppUser | null> {
-  const session = await auth.api.getSession({ headers: await headers() });
+  return getSessionUserFrom(await headers());
+}
+
+// Igual que getSessionUser, pero con encabezados dados. La API móvil lo usa
+// justo después de iniciar sesión, con el token recién emitido.
+export async function getSessionUserFrom(h: Headers): Promise<AppUser | null> {
+  const session = await auth.api.getSession({ headers: h });
   if (!session) return null;
   const u = session.user as typeof session.user & {
     role?: string | null;
