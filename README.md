@@ -4,6 +4,8 @@ Plataforma de inscripciones a eventos deportivos: formulario configurable,
 inscripción con pago y boleta con código QR, y paneles por rol
 (participante, organizador y administrador).
 
+**Sitio en producción:** https://eventflow-ten-jet.vercel.app
+
 ## Stack
 
 - Next.js (App Router) + TypeScript + Tailwind CSS.
