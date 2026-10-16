@@ -1,0 +1,83 @@
+name: App móvil (Flutter)
+
+on:
+  push:
+    branches: [main, app-movil]
+    paths: ["movil/**", ".github/workflows/movil.yml"]
+    tags: ["movil-v*"]
+  pull_request:
+    paths: ["movil/**", ".github/workflows/movil.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  compilar:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: movil
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Versión de Flutter
+        run: flutter --version
+
+      # Solo la primera vez: genera la carpeta android/ si aún no está en el repositorio.
+      - name: Generar plataforma Android (si falta)
+        run: |
+          if [ ! -d android ]; then
+            flutter create --platforms=android --org co.edu.upb --project-name eventflow --no-pub .
+            rm -f test/widget_test.dart
+          fi
+
+      - name: Dependencias
+        run: flutter pub get
+
+      - name: Correcciones automáticas (solo informativo)
+        run: dart fix --dry-run || true
+
+      - name: Proyecto generado (para revisión)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: proyecto-movil
+          path: |
+            movil
+            !movil/build
+            !movil/.dart_tool
+          retention-days: 3
+
+      - name: Análisis estático
+        run: flutter analyze
+
+      - name: Pruebas
+        run: flutter test
+
+      - name: Compilar APK
+        run: flutter build apk --release
+
+      - name: Publicar APK como artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: eventflow-apk
+          path: movil/build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Crear release con el APK (solo en etiquetas movil-v*)
+        if: startsWith(github.ref, 'refs/tags/movil-v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: movil/build/app/outputs/flutter-apk/app-release.apk
+          name: EventFlow móvil ${{ github.ref_name }}
+          body: APK de EventFlow para Android. Instalar permitiendo apps de origen desconocido.

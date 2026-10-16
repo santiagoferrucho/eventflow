@@ -1,0 +1,32 @@
+name: eventflow
+description: "EventFlow móvil: inscripciones a eventos deportivos, boleta con QR y control de ingreso."
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.5.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^1.2.2
+  flutter_secure_storage: ^9.2.2
+  shared_preferences: ^2.3.2
+  qr_flutter: ^4.1.0
+  mobile_scanner: ^7.0.0
+  geolocator: ^14.0.0
+  url_launcher: ^6.3.1
+  image_picker: ^1.1.2
+  share_plus: ^10.1.4
+  path_provider: ^2.1.4
+  flutter_local_notifications: ^19.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/icono.png
