@@ -67,3 +67,37 @@ describe("reservas y fechas", () => {
     expect(nombreSeguro("Carrera Atardecer UPB ¡2026!")).toBe("carrera-atardecer-upb-2026");
   });
 });
+
+describe("seguridad de datos", () => {
+  it("al exportar CSV, una celda que empieza por = + - @ no se ejecuta como fórmula en Excel", async () => {
+    const { descargarCSV } = await import("@/lib/csv");
+    let contenido = "";
+    const g = globalThis as unknown as Record<string, unknown>;
+    const antes = { Blob: g.Blob, URL: g.URL, document: g.document };
+    g.Blob = class {
+      constructor(partes: string[]) {
+        contenido = partes.join("");
+      }
+    };
+    g.URL = { createObjectURL: () => "blob:x", revokeObjectURL: () => undefined };
+    g.document = {
+      createElement: () => ({ click() {}, remove() {} }),
+      body: { appendChild() {} },
+    };
+    try {
+      descargarCSV("x.csv", [["Nombre", "Respuesta"], ['=HYPERLINK("http://malo")', 'Dice "hola"']]);
+    } finally {
+      Object.assign(g, antes);
+    }
+    expect(contenido).toContain(`"'=HYPERLINK(""http://malo"")"`);
+    expect(contenido).toContain(`"Dice ""hola"""`);
+  });
+
+  it("la autorización de datos solo vale si llega exactamente true", async () => {
+    const { exigirAceptacion } = await import("@/lib/consentimiento");
+    expect(() => exigirAceptacion(true)).not.toThrow();
+    for (const v of [false, "true", 1, undefined, null]) {
+      expect(() => exigirAceptacion(v)).toThrow(/política de tratamiento/);
+    }
+  });
+});
