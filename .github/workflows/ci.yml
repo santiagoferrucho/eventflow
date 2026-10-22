@@ -33,6 +33,8 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npx tsc --noEmit
+      # db:setup lee .env.local; en CI las variables vienen del entorno.
+      - run: touch .env.local
       - run: npm run db:setup
       - run: npm test
       - run: npm run build
